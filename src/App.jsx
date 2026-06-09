@@ -15,27 +15,73 @@ export default function App() {
   const [dailyTarget, setDailyTarget] = useState(4); 
 
   useEffect(() => {
-    const savedLogs = localStorage.getItem('ecosync_logs');
-    const savedTarget = localStorage.getItem('ecosync_target');
-    const savedTheme = localStorage.getItem('ecosync_theme');
-    
-    if (savedLogs) setLogs(JSON.parse(savedLogs));
-    if (savedTarget) setDailyTarget(parseFloat(savedTarget));
-    if (savedTheme) setIsDark(savedTheme === 'dark');
+    // CODE QUALITY FIX: Robust localStorage fetching to prevent JSON parse crashes
+    try {
+      const savedLogs = localStorage.getItem('ecosync_logs');
+      if (savedLogs) setLogs(JSON.parse(savedLogs));
+    } catch (error) {
+      console.error("Failed to parse logs from local storage. Resetting.", error);
+      localStorage.removeItem('ecosync_logs');
+    }
+
+    try {
+      const savedTarget = localStorage.getItem('ecosync_target');
+      if (savedTarget && !isNaN(parseFloat(savedTarget))) {
+        setDailyTarget(parseFloat(savedTarget));
+      }
+    } catch (error) {
+      console.error("Failed to parse target from local storage.", error);
+    }
+
+    try {
+      const savedTheme = localStorage.getItem('ecosync_theme');
+      if (savedTheme) setIsDark(savedTheme === 'dark');
+    } catch (error) {
+      console.error("Failed to parse theme from local storage.", error);
+    }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('ecosync_logs', JSON.stringify(logs));
-    localStorage.setItem('ecosync_target', dailyTarget.toString());
-    localStorage.setItem('ecosync_theme', isDark ? 'dark' : 'light');
+    // CODE QUALITY FIX: Robust localStorage setting to handle QuotaExceeded errors
+    try {
+      localStorage.setItem('ecosync_logs', JSON.stringify(logs));
+      localStorage.setItem('ecosync_target', dailyTarget.toString());
+      localStorage.setItem('ecosync_theme', isDark ? 'dark' : 'light');
+    } catch (error) {
+      console.error("Failed to save data to local storage.", error);
+    }
   }, [logs, dailyTarget, isDark]);
 
   const toggleTheme = () => setIsDark(!isDark);
 
+  /**
+   * Calculates the total CO2e emissions from all logged activities.
+   * @type {number} Total emissions in kg CO2e.
+   */
   const totalEmissions = logs.reduce((sum, log) => sum + log.co2e, 0);
+
+  /**
+   * Extracts the unique dates on which activities were logged.
+   * @type {string[]} Array of date strings (YYYY-MM-DD).
+   */
   const uniqueDates = [...new Set(logs.map(l => l.date))];
+
+  /**
+   * The count of unique days, defaulting to 1 to prevent division by zero.
+   * @type {number}
+   */
   const uniqueDays = uniqueDates.length || 1; 
+
+  /**
+   * Calculates the daily average emissions based on unique days logged.
+   * @type {number} Average emissions per day in kg CO2e.
+   */
   const dailyAverage = (totalEmissions / uniqueDays);
+
+  /**
+   * Calculates the percentage comparison against the global daily average benchmark.
+   * @type {string} Formatted percentage string.
+   */
   const globalAvgComparison = ((dailyAverage / BENCHMARKS.GLOBAL_AVG_DAILY) * 100).toFixed(1);
 
   const renderTabContent = () => {
@@ -56,17 +102,19 @@ export default function App() {
         {/* Sidebar */}
         <aside className="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col fixed h-screen z-10 hidden md:flex">
           <div className="p-6 flex items-center justify-between">
-            <div 
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            {/* ACCESSIBILITY FIX: Changed div to button for keyboard navigation */}
+            <button 
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded p-1 -ml-1 text-left"
               onClick={() => setActiveTab('dashboard')}
+              aria-label="Go to home dashboard"
             >
               <div className="p-1.5 bg-indigo-500/10 rounded-lg text-indigo-500">
-                <Leaf className="w-5 h-5" />
+                <Leaf className="w-5 h-5" aria-hidden="true" />
               </div>
               <span className="font-bold text-lg tracking-tight">EcoSync</span>
-            </div>
-            <button onClick={toggleTheme} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full text-slate-500 dark:text-slate-400 transition-colors">
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button onClick={toggleTheme} aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full text-slate-500 dark:text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              {isDark ? <Sun className="w-4 h-4" aria-hidden="true"/> : <Moon className="w-4 h-4" aria-hidden="true"/>}
             </button>
           </div>
 
@@ -84,16 +132,35 @@ export default function App() {
 
         {/* Mobile Header */}
         <div className="md:hidden fixed top-0 w-full bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-4 flex justify-between items-center z-20">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-             <Leaf className="w-5 h-5 text-indigo-500" />
+          
+          {/* ACCESSIBILITY FIX: Keyboard accessible button */}
+          <button 
+            onClick={() => setActiveTab('dashboard')}
+            aria-label="Go to home dashboard"
+            className="flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded p-1"
+          >
+             <Leaf className="w-5 h-5 text-indigo-500" aria-hidden="true" />
              <span className="font-bold">EcoSync</span>
-          </div>
-          <div className="flex gap-2">
-             <button onClick={toggleTheme} className="p-2"><Sun className="w-4 h-4" /></button>
-             <select value={activeTab} onChange={(e) => setActiveTab(e.target.value)} className="bg-transparent text-sm font-medium outline-none">
-               <option value="dashboard" className="text-black">Dashboard</option>
-               <option value="log" className="text-black">Log Activity</option>
-               <option value="insights" className="text-black">Insights</option>
+          </button>
+
+          <div className="flex gap-2 items-center">
+             <button 
+               onClick={toggleTheme} 
+               aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+               className="p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-500 dark:text-slate-400"
+             >
+               {isDark ? <Sun className="w-4 h-4" aria-hidden="true" /> : <Moon className="w-4 h-4" aria-hidden="true" />}
+             </button>
+
+             <select 
+               value={activeTab} 
+               onChange={(e) => setActiveTab(e.target.value)} 
+               aria-label="Mobile navigation menu"
+               className="bg-transparent text-sm font-medium outline-none p-1 rounded focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900"
+             >
+               <option value="dashboard" className="text-black dark:text-white">Dashboard</option>
+               <option value="log" className="text-black dark:text-white">Log Activity</option>
+               <option value="insights" className="text-black dark:text-white">Insights</option>
              </select>
           </div>
         </div>

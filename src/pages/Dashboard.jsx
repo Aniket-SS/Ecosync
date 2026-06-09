@@ -78,7 +78,11 @@ export default function Dashboard({ logs, dailyAverage, dailyTarget, totalEmissi
              {chartData.length === 0 ? (
                <p className="text-sm text-slate-500">Log activities to see your chart.</p>
              ) : (
-               <div className="w-full h-40 flex items-end justify-around gap-2 mt-4">
+               <div 
+                 className="w-full h-40 flex items-end justify-around gap-2 mt-4"
+                 role="graphics-document"
+                 aria-label="Daily emissions bar chart"
+               >
                  {chartData.map((d, i) => {
                    // Ensure the bar has at least a tiny bit of height so it's visible
                    const heightPct = Math.max((d.value / maxEmission) * 100, 2);
@@ -110,7 +114,14 @@ export default function Dashboard({ logs, dailyAverage, dailyTarget, totalEmissi
           </div>
           
           <div className="relative w-40 h-40 flex items-center justify-center mb-4">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+            <svg 
+              className="w-full h-full transform -rotate-90" 
+              viewBox="0 0 36 36"
+              role="graphics-document"
+              aria-label="Goal progress ring chart"
+            >
+              <title>Goal Progress</title>
+              <desc>A ring chart showing {goalPercentage.toFixed(0)}% completion of your daily target.</desc>
               <path className="text-slate-100 dark:text-slate-800" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
               <path className="text-indigo-500 transition-all duration-1000 ease-out" strokeDasharray={`${goalPercentage}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>

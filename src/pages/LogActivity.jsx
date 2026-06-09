@@ -47,8 +47,8 @@ export default function LogActivity({ logs = [], setLogs = () => {}, dailyTarget
           <h1 className="text-3xl font-bold mb-2">Log an activity</h1>
           <p className="text-slate-500 dark:text-slate-400">Record the things you do — we convert them to CO2e using documented emission factors.</p>
         </div>
-        <button onClick={() => setLogs([])} className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors">
-          <Trash2 className="w-4 h-4" /> Clear all
+        <button onClick={() => setLogs([])} aria-label="Clear all logs" className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors">
+          <Trash2 className="w-4 h-4" aria-hidden="true" /> Clear all
         </button>
       </div>
 
@@ -56,8 +56,9 @@ export default function LogActivity({ logs = [], setLogs = () => {}, dailyTarget
         <Card className="lg:col-span-2">
           <form onSubmit={handleAddLog}>
             <div className="mb-4">
-              <label className="block text-sm font-semibold mb-2">Activity</label>
+              <label htmlFor="activitySelect" className="block text-sm font-semibold mb-2">Activity</label>
               <select 
+                id="activitySelect"
                 value={selectedActivity} 
                 onChange={(e) => setSelectedActivity(e.target.value)}
                 className="w-full p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-lg text-sm outline-none focus:border-indigo-500 dark:focus:border-indigo-500 transition-colors"
@@ -71,8 +72,9 @@ export default function LogActivity({ logs = [], setLogs = () => {}, dailyTarget
 
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="block text-sm font-semibold mb-2">Amount ({activeItem.unit})</label>
+                <label htmlFor="amountInput" className="block text-sm font-semibold mb-2">Amount ({activeItem.unit})</label>
                 <input 
+                  id="amountInput"
                   type="number" step="0.1" min="0" required 
                   value={amount} onChange={(e) => setAmount(e.target.value)}
                   placeholder="e.g. 12"
@@ -80,8 +82,9 @@ export default function LogActivity({ logs = [], setLogs = () => {}, dailyTarget
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">Date</label>
+                <label htmlFor="dateInput" className="block text-sm font-semibold mb-2">Date</label>
                 <input 
+                  id="dateInput"
                   type="date" required 
                   max={today}
                   value={date} onChange={(e) => setDate(e.target.value)}
@@ -96,7 +99,7 @@ export default function LogActivity({ logs = [], setLogs = () => {}, dailyTarget
                 {amount ? `Preview: ${(amount * activeItem.factor).toFixed(2)} kg CO2e` : 'Enter an amount to preview'}
               </span>
               <button type="submit" className="px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-lg text-sm transition-colors flex items-center gap-2">
-                <PlusCircle className="w-4 h-4" /> Add to log
+                <PlusCircle className="w-4 h-4" aria-hidden="true" /> Add to log
               </button>
             </div>
           </form>
@@ -104,13 +107,14 @@ export default function LogActivity({ logs = [], setLogs = () => {}, dailyTarget
 
         <Card>
           <div className="flex items-center gap-2 mb-2">
-             <TargetIcon className="w-5 h-5 text-indigo-500" />
+             <TargetIcon className="w-5 h-5 text-indigo-500" aria-hidden="true" />
              <h3 className="font-bold">Daily target</h3>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Set a goal to track against.</p>
 
-          <label className="block text-sm font-semibold mb-2">Target (kg CO2e per day)</label>
+          <label htmlFor="targetInput" className="block text-sm font-semibold mb-2">Target (kg CO2e per day)</label>
           <input 
+            id="targetInput"
             type="number" step="0.1" min="0.1"
             value={targetInput} onChange={(e) => setTargetInput(e.target.value)}
             className="w-full p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-lg text-sm outline-none mb-2"
@@ -126,7 +130,7 @@ export default function LogActivity({ logs = [], setLogs = () => {}, dailyTarget
 
       <Card>
         <div className="flex items-center gap-2 mb-1">
-          <LayoutDashboard className="w-5 h-5 text-slate-400" />
+          <LayoutDashboard className="w-5 h-5 text-slate-400" aria-hidden="true" />
           <h3 className="font-bold text-lg">History</h3>
         </div>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{logs.length} logged activities.</p>
@@ -139,7 +143,7 @@ export default function LogActivity({ logs = [], setLogs = () => {}, dailyTarget
               <div key={log.id} className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group">
                 <div className="flex items-center gap-4">
                   <div className={`p-2.5 rounded-lg bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400`}>
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-5 h-5" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="font-bold text-slate-800 dark:text-slate-200">{activityInfo.label}</p>
@@ -148,8 +152,8 @@ export default function LogActivity({ logs = [], setLogs = () => {}, dailyTarget
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="font-bold text-lg">{log.co2e.toFixed(1)} kg</span>
-                  <button onClick={() => setLogs(logs.filter(l => l.id !== log.id))} className="p-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
-                    <Trash2 className="w-4 h-4" />
+                  <button onClick={() => setLogs(logs.filter(l => l.id !== log.id))} aria-label={`Delete ${activityInfo.label} log`} className="p-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>
