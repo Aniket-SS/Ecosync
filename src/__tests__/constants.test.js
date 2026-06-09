@@ -29,4 +29,10 @@ describe('Carbon Constants Data Integrity', () => {
     expect(categories.has('Diet')).toBe(true);
     expect(categories.has('Shopping')).toBe(true);
   });
+
+  it('contains strictly unique IDs for React key rendering', () => {
+    const ids = ACTIVITIES.map(a => a.id);
+    const uniqueIds = new Set(ids);
+    expect(uniqueIds.size).toBe(ids.length);
+  });
 });
